@@ -81,7 +81,7 @@ Visualization of camera extrinsics using my implemented visualizer
 > - The output .json file should look something like: <br/>
 ```{"version":1.3,"people":[{"person_id":[-1],"pose_keypoints_2d":[2055.39,265.531,0.874508,2267.43,542.444,0.678595,2190.91,559.855,0.566347,2037.84,865.877,0.602067,1766.9,772.016,0.519303,2326.48,542.172,0.704926,2055.42,901.382,0.770255 ... ]}```
 <p align="center">
-  <img width="300" src="images/keypoints_pose_25.png">
+  <img width="300" src="images/openpose_BODY25.png">
 </p>
 
 ### Triangulation & Optimization (Checkerboard)

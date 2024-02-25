@@ -1,4 +1,4 @@
-# Multi Camera 3D Human Reconstruction -<br/> Reconstructing 3D Human Keypoints from 2D Images
+# Multi Camera 3D Human Reconstruction -<br/> Reconstructing 3D from 2D
 This is my implementation of Stereo Camera Reconstruction using DLT (Direct Linear Transform), Triangulation with Linear/Non-Linear Optimization through Python. <br/> 
 
 ![Stereo Reconstruction Final Results](images/checkerboard_result.png)<br/>

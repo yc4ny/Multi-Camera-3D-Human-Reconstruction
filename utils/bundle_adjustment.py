@@ -184,7 +184,6 @@ def RunBundleAdjustment(P, X, track):
     initial_error = MeasureReprojection(z0, b, n_cameras, n_points, camera_index, point_index)
     final_error = MeasureReprojection(z_opt, b, n_cameras, n_points, camera_index, point_index)
     print(f'Reprojection error improved from {np.linalg.norm(initial_error)} to {np.linalg.norm(final_error)}.')
-
     # Update poses and points based on optimized parameters
     P_new, X_new = UpdatePosePoint(z_opt, n_cameras, n_points)
 

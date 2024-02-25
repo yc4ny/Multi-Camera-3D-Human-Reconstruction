@@ -1,8 +1,8 @@
 import numpy as np
-import utils.stereo_calib as stereo
+import utils.triangulation as stereo
 import os
 import visualizer.openpose_visualizer as viz
-import utils.concat_openpose as concat_openpose 
+import utils.concat_openpose_imgs as concat_openpose_imgs 
 
 if __name__ == '__main__':
     
@@ -150,7 +150,7 @@ if __name__ == '__main__':
     np.save('concat/nl_error.npy',error_track, True, True)
 
     # Concat Images 
-    concat_openpose.concat()
+    concat_openpose_imgs.concat()
        
 
 

@@ -179,7 +179,6 @@ def RunBundleAdjustment(P, X, track):
 
     # Extract optimized parameters
     z_opt = res.x
-
     # Calculate initial and final reprojection errors for comparison
     initial_error = MeasureReprojection(z0, b, n_cameras, n_points, camera_index, point_index)
     final_error = MeasureReprojection(z_opt, b, n_cameras, n_points, camera_index, point_index)

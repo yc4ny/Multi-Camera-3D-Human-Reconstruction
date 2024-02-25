@@ -1,13 +1,13 @@
 # Multi Camera 3D Human Reconstruction -<br/> Reconstructing 3D from 2D
 This is my implementation of Stereo Camera Reconstruction using DLT (Direct Linear Transform), Triangulation with Linear/Non-Linear Optimization through Python. <br/> 
 
-![Stereo Reconstruction Final Results](images/checkerboard_result.png)<br/>
+![Stereo Reconstruction Final Results](imgs/checkerboard_result.png)<br/>
 > - Red points indicate the 2D reprojection of the reconstructed 3D points. <br/>
 > - Green points indicate the 2D points found by MATLAB's Camera Calibrator.<br/> 
 > - The "ON" sign in green indicates that the checkerboard points have been detected with MATLAB's calibrator. There must be at least 2 cameras with "ON" sign in order to reconstruct 3D points.<br/> 
 > - The "Frame Error" indicates the average reprojection error (Euclidean distance) of points of the reconstructed 3D points. <br/>
 
-![Stereo Reconstruction Final Results](images/openpose_result.png)<br/><br/> 
+![Stereo Reconstruction Final Results](imgs/openpose_result.png)<br/><br/> 
 > - Green joints indicate the 2D reprojection of the reconstructed 3D joints. <br/>
 > - Orange joints indicate the 2D joints found by openpose.<br/> 
 > - The "Frame Reprojection Error" indicates the average reprojection error (Euclidean distance) of points of the reconstructed 3D joints. <br/>

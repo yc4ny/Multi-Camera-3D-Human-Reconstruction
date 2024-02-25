@@ -4,6 +4,7 @@
 # Redistribution and use in source and binary forms, with or without
 # modification, are not permitted without direct permission from the author.
 
+
 % List of camera directories to process
 cameraDirs = {'C1_undistort', 'C2_undistort', 'C3_undistort', 'C4_undistort', 'C5_undistort'};
 

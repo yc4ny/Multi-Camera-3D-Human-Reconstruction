@@ -4,6 +4,7 @@
 # Redistribution and use in source and binary forms, with or without
 # modification, are not permitted without direct permission from the author.
 
+
 % Define camera intrinsic matrix and radial distortion coefficients
 IntrinsicMatrix = [1769.60561310104 0 0; 0 1763.89532833387 0; 1927.08704019384 1064.40054933721 1];
 radialDistortion = [-0.244052127306437, 0.0597008096110524];

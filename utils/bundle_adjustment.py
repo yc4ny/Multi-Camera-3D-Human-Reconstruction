@@ -12,7 +12,7 @@ from utils.triangulation import Quaternion2Rotation
 def construct_camera_matrix(R, C):
     """
     Construct camera projection matrix from rotation matrix and camera center.
-    
+    s
     Parameters:
     - R: Rotation matrix (3x3)
     - C: Camera center (3,)

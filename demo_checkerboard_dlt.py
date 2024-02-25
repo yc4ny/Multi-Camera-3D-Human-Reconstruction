@@ -1,5 +1,5 @@
 import numpy as np
-import utils.stereo_calib as stereo 
+import utils.triangulation as stereo 
 import utils.bundle_adjustment as bundle
 import os
 import visualizer.openpose_visualizer as viz

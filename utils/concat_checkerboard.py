@@ -1,68 +1,61 @@
+# Copyright (c) 2024 Yonwoo Choi
+# All rights reserved.
+# This code is part of my research at Seoul National University.
+# Redistribution and use in source and binary forms, with or without
+# modification, are not permitted without direct permission from the author.
+
 import os
-import cv2 
+import cv2
 import numpy as np
+import argparse
 
-dir_path = r'input_data/checkerboard/nonlinear_C1'
-count = 0
-for path in os.listdir(dir_path):
-    if os.path.isfile(os.path.join(dir_path, path)):
-        count += 1
+def setup_argparse():
+    parser = argparse.ArgumentParser(description='Concatenate images from multiple camera angles with overlays.')
+    parser.add_argument('--input_dir', type=str, required=True, help='Directory path for input images.')
+    parser.add_argument('--output_dir', type=str, required=True, help='Directory path for output concatenated images.')
+    return parser.parse_args()
 
-font                    = cv2.FONT_HERSHEY_SIMPLEX
-topLeftCornerOfText     = (10,150)
-topRightCornerOfText    = (3200, 150)
-bottomRightCornerOfText = (1800,2000)
-veryBottomCornerOfText  = (1730,2090)
-fontScale1              = 5
-fontScale2              = 4
-fontScale3              = 3.4
-fontColor1              = (0,0,255)
-fontColor2              = (255,255,255)
-fontColor3              = (0,255,0)
-thickness               = 10
-lineType                = 2
+def ensure_output_dir_exists(output_dir):
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
 
-on_1 = np.load('input_Data/checkerboard_on/C1_initial.npy')
-on_2 = np.load('input_Data/checkerboard_on/C2_initial.npy')
-on_3 = np.load('input_Data/checkerboard_on/C3_initial.npy')
-on_4 = np.load('input_Data/checkerboard_on/C4_initial.npy')
-on_5 = np.load('input_Data/checkerboard_on/C5_initial.npy')
-# error = np.load('output_3d/error.npy')
+def process_images(input_dir, output_dir, count, on_states):
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    topLeftCornerOfText = (10, 150)
+    topRightCornerOfText = (3200, 150)
+    fontScale1 = 5
+    fontColor1 = (0, 0, 255)  # Red for camera labels
+    fontColor3 = (0, 255, 0)  # Green for 'ON' label
+    thickness = 10
+    lineType = 2
 
-for i in range (1, count): 
-    print ("Concating image " + str(i) + "......")
+    for i in range(1, count + 1):
+        print(f"Processing image {i}...")
+        images = []
+        for c in range(1, 6):
+            img_path = os.path.join(input_dir, f'nonlinear_C{c}/{i}.jpg')
+            img = cv2.imread(img_path)
+            cv2.putText(img, f'Camera {c}', topLeftCornerOfText, font, fontScale1, fontColor1, thickness, lineType)
+            if on_states[c-1][i-1] == 1:
+                cv2.putText(img, 'ON', topRightCornerOfText, font, fontScale1, fontColor3, thickness, lineType)
+            images.append(img)
 
-    c1 = cv2.imread('input_Data/checkerboard/nonlinear_C1/'+str(i)+'.jpg')
-    c2 = cv2.imread('input_Data/checkerboard/nonlinear_C2/'+str(i)+'.jpg')
-    c3 = cv2.imread('input_Data/checkerboard/nonlinear_C3/'+str(i)+'.jpg')
-    c4 = cv2.imread('input_Data/checkerboard/nonlinear_C4/'+str(i)+'.jpg')
-    c5 = cv2.imread('input_Data/checkerboard/nonlinear_C5/'+str(i)+'.jpg')
+        # Concatenate images
+        c1_c2 = cv2.hconcat([images[0], images[1]])
+        c3_c4 = cv2.hconcat([images[2], images[3]])
+        c1_c2_c3_c4 = cv2.vconcat([c1_c2, c3_c4])
+        images[4] = cv2.resize(images[4], dsize=(c1_c2_c3_c4.shape[1], images[4].shape[0]), interpolation=cv2.INTER_CUBIC)
+        final_image = cv2.hconcat([c1_c2_c3_c4, images[4]])
 
-    cv2.putText(c1,'Camera 1', topLeftCornerOfText, font, fontScale1,fontColor1,thickness,lineType)
-    cv2.putText(c2,'Camera 2', topLeftCornerOfText, font, fontScale1,fontColor1,thickness,lineType)
-    cv2.putText(c3,'Camera 3', topLeftCornerOfText, font, fontScale1,fontColor1,thickness,lineType)
-    cv2.putText(c4,'Camera 4', topLeftCornerOfText, font, fontScale1,fontColor1,thickness,lineType)
-    cv2.putText(c5,'Camera 5', topLeftCornerOfText, font, fontScale1,fontColor1,thickness,lineType)
+        # Save the concatenated image
+        cv2.imwrite(os.path.join(output_dir, f'{i}_concat.jpg'), final_image)
 
-    if on_1[i][0] == 1:
-        cv2.putText(c1,'ON', topRightCornerOfText, font, fontScale1,fontColor3,thickness,lineType)
-    if on_2[i][0] == 1:
-        cv2.putText(c2,'ON', topRightCornerOfText, font, fontScale1,fontColor3,thickness,lineType)
-    if on_3[i][0] == 1:
-        cv2.putText(c3,'ON', topRightCornerOfText, font, fontScale1,fontColor3,thickness,lineType)
-    if on_4[i][0] == 1:
-        cv2.putText(c4,'ON', topRightCornerOfText, font, fontScale1,fontColor3,thickness,lineType)
-    if on_5[i][0] == 1:
-        cv2.putText(c5,'ON', topRightCornerOfText, font, fontScale1,fontColor3,thickness,lineType)
-    
-    # cv2.putText(c5, 'Frame error: '+str(error[i]), bottomRightCornerOfText,font, fontScale2,fontColor2,thickness,lineType)
+def main():
+    args = setup_argparse()
+    ensure_output_dir_exists(args.output_dir)
+    on_states = [np.load(os.path.join(args.input_dir, f'checkerboard_on/C{i}_initial.npy')) for i in range(1, 6)]
+    count = len([name for name in os.listdir(os.path.join(args.input_dir, 'nonlinear_C1')) if os.path.isfile(os.path.join(args.input_dir, 'nonlinear_C1', name))])
+    process_images(args.input_dir, args.output_dir, count, on_states)
 
-    # if i == count-1:
-    #     cv2.putText(c5, 'Total average error: 9.001184924709639',veryBottomCornerOfText,font, fontScale3,fontColor2,thickness,lineType)
-
-    c1_c2 = cv2.hconcat([c1,c2])
-    c3_c4 = cv2.hconcat([c3,c4])
-    c1_c2_c3_c4 = cv2.vconcat([c1_c2, c3_c4])
-    c5 = cv2.resize(c5, dsize=(7680,4320), interpolation= cv2.INTER_CUBIC)
-    c1_c2_c3_c4_c5 = cv2.hconcat([c1_c2_c3_c4,c5])
-    cv2.imwrite('output_data/checkerboard_nl_concat/'+str(i)+'_concat.jpg',c1_c2_c3_c4_c5 )
+if __name__ == "__main__":
+    main()

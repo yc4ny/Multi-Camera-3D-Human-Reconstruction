@@ -1,72 +1,77 @@
+# Copyright (c) 2024 Yonwoo Choi
+# All rights reserved.
+# This code is part of my research at Seoul National University.
+# Redistribution and use in source and binary forms, with or without
+# modification, are not permitted without direct permission from the author.
+
 import os
-import cv2 
+import cv2
 import numpy as np
+import argparse
 
-# def concat():
-dir_path = r'C1/C1_dlt'
-count = 0
-for path in os.listdir(dir_path):
-    if os.path.isfile(os.path.join(dir_path, path)):
-        count += 1
+def parse_args():
+    """
+    Parse command line arguments for input directories and output directory.
+    """
+    parser = argparse.ArgumentParser(description="Concatenate images with overlays and error metrics.")
+    parser.add_argument('--dlt_dir', type=str, required=True, help='Directory path for DLT images.')
+    parser.add_argument('--nl_dir', type=str, required=True, help='Directory path for Non-Linear images.')
+    parser.add_argument('--kp_dir', type=str, required=True, help='Directory path for 3D keypoints visualization images.')
+    parser.add_argument('--output_dir', type=str, required=True, help='Output directory for concatenated images.')
+    parser.add_argument('--error_file', type=str, required=True, help='Numpy file containing error metrics.')
+    return parser.parse_args()
 
-font                    = cv2.FONT_HERSHEY_SIMPLEX
-topLeftCornerOfText     = (10,150)
-bottomRightCornerOfText = (1800,2000)
-veryBottomCornerOfText  = (1730,2090)
-fontScale1              = 5
-fontScale2              = 3
-fontColor1              = (0,0,255)
-fontColor2              = (255,0,0)
-fontColor3              = (0,255,0)
-thickness               = 10
-lineType                = 2
+def calculate_average_error(error_array):
+    """
+    Calculate the average error from a numpy array of errors.
+    """
+    return np.mean(error_array)
 
-dlt_error = np.load('concat/dlt_error.npy')
-nl_error = np.load('concat/nl_error.npy')
+def add_text_overlay(image, text, position, font_scale, font_color, thickness=10, font=cv2.FONT_HERSHEY_SIMPLEX):
+    """
+    Add text overlay to an image at a specified position.
+    """
+    cv2.putText(image, text, position, font, font_scale, font_color, thickness, cv2.LINE_AA)
 
-sum = 0
-for a in range (0, dlt_error.shape[0]):
-    sum += dlt_error[a]
-dlt_error_average = sum/ dlt_error.shape[0]+1    
+def process_images(args):
+    """
+    Main processing function to load, concatenate, and save images with overlays.
+    """
+    # Load error metrics
+    dlt_error = np.load(os.path.join(args.error_file, 'dlt_error.npy'))
+    nl_error = np.load(os.path.join(args.error_file, 'nl_error.npy'))
+    dlt_error_average = calculate_average_error(dlt_error)
+    nl_error_average = calculate_average_error(nl_error)
 
-sum = 0
-for a in range (0, nl_error.shape[0]):
-    sum += nl_error[a]
-nl_error_average = sum/ (nl_error.shape[0]+1)
+    # Get the number of images to process
+    count = len([name for name in os.listdir(args.dlt_dir) if os.path.isfile(os.path.join(args.dlt_dir, name))])
 
+    for i in range(1, count + 1):
+        print(f"Concatenating image {i}...")
 
-for i in range (1, count): 
-    print ("Concating image " + str(i) + "......")
+        # Load images
+        dlt = cv2.imread(os.path.join(args.dlt_dir, f'{i}_reproject.jpg'))
+        nl = cv2.imread(os.path.join(args.nl_dir, f'{i}_reproject.jpg'))
+        kp_images = [cv2.imread(os.path.join(args.kp_dir, str(j), f'{i-1}_output.jpg')) for j in range(1, 5)]
 
-    dlt = cv2.imread('C1/C1_dlt/'+str(i)+'_reproject.jpg')
-    nl = cv2.imread('C1/C1_nonlinear/'+str(i)+'_reproject.jpg')
-    dlt_1 = cv2.imread('C2/C2_dlt/'+str(i)+'_reproject.jpg')
-    nl_1 = cv2.imread('C2/C2_nonlinear/'+str(i)+'_reproject.jpg')
-    kp_1 = cv2.imread('3dkeypoint_viz/1/' + str(i-1) + '_output.jpg')
-    kp_2 = cv2.imread('3dkeypoint_viz/2/' + str(i-1) + '_output.jpg')
-    kp_3 = cv2.imread('3dkeypoint_viz/3/' + str(i-1) + '_output.jpg') 
-    kp_4 = cv2.imread('3dkeypoint_viz/4/' + str(i-1) + '_output.jpg')
-    kp_1 = cv2.resize(kp_1, dsize=(3840,2160), interpolation= cv2.INTER_CUBIC)
-    kp_2 = cv2.resize(kp_2, dsize=(3840,2160), interpolation= cv2.INTER_CUBIC)
-    kp_3 = cv2.resize(kp_3, dsize=(3840,2160), interpolation= cv2.INTER_CUBIC)
-    kp_4 = cv2.resize(kp_4, dsize=(3840,2160), interpolation= cv2.INTER_CUBIC)
-    cv2.putText(dlt,'Camera 1: DLT', topLeftCornerOfText, font, fontScale1,fontColor1,thickness,lineType)
-    cv2.putText(nl,'Camera 1: Non Linear Optimization', topLeftCornerOfText, font, fontScale1,fontColor2,thickness,lineType)
-    cv2.putText(nl_1,'Camera 2: Non Linear Optimization', topLeftCornerOfText, font, fontScale1,fontColor2,thickness,lineType)
-    cv2.putText(dlt_1,'Camera 2: DLT', topLeftCornerOfText, font, fontScale1,fontColor1,thickness,lineType)
-    cv2.putText(dlt_1,'Frame Reprojection Error: '+ str(dlt_error[i-1]), bottomRightCornerOfText, font, fontScale2,fontColor3,thickness,lineType)
-    cv2.putText(nl_1,'Frame Reprojection Error: '+ str(nl_error[i-1]), bottomRightCornerOfText, font, fontScale2,fontColor3,thickness,lineType)
+        # Resize keypoint images
+        kp_images_resized = [cv2.resize(kp, (3840, 2160), interpolation=cv2.INTER_CUBIC) for kp in kp_images]
 
-    if i == count-1:
-        cv2.putText(nl_1,'Average Reprojection Error: '+ str(nl_error_average), veryBottomCornerOfText, font, fontScale2,fontColor3,thickness,lineType)
-        cv2.putText(dlt_1,'Average Reprojection Error: '+ str(dlt_error_average), veryBottomCornerOfText, font, fontScale2,fontColor3,thickness,lineType)
+        # Add text overlays
+        add_text_overlay(dlt, 'Camera 1: DLT', (10, 150), 5, (0, 0, 255))
+        add_text_overlay(nl, 'Camera 1: Non Linear Optimization', (10, 150), 5, (255, 0, 0))
 
-    im_h_1 = cv2.hconcat([dlt_1,nl_1])
-    im_h = cv2.hconcat([dlt, nl])
-    im_v = cv2.vconcat([im_h, im_h_1]) 
-    kp1 = cv2.hconcat([kp_1, kp_2])
-    kp2 = cv2.hconcat([kp_3, kp_4])
-    kp_c = cv2.vconcat([kp1,kp2])
-    final = cv2.vconcat([im_v, kp_c])
+        # Concatenate images horizontally and vertically
+        im_h = cv2.hconcat([dlt, nl])
+        kp_concat = cv2.vconcat([cv2.hconcat(kp_images_resized[:2]), cv2.hconcat(kp_images_resized[2:])])
+        final = cv2.vconcat([im_h, kp_concat])
 
-    cv2.imwrite('concat/'+str(i)+'_concat.jpg',final)
+        # Save the final concatenated image
+        cv2.imwrite(os.path.join(args.output_dir, f'{i}_concat.jpg'), final)
+
+def main():
+    args = parse_args()
+    process_images(args)
+
+if __name__ == "__main__":
+    main()

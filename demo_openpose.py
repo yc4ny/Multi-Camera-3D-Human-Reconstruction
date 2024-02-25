@@ -1,7 +1,7 @@
 import numpy as np
 import utils.triangulation as stereo
 import os
-import visualizer.openpose_visualizer as viz
+import visualizer.vis_openpose as viz
 import utils.concat_openpose_imgs as concat_openpose_imgs 
 
 if __name__ == '__main__':

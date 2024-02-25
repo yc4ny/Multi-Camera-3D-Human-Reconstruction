@@ -2,7 +2,7 @@ import numpy as np
 import utils.triangulation as stereo 
 import utils.bundle_adjustment as bundle
 import os
-import visualizer.openpose_visualizer as viz
+import visualizer.vis_openpose as viz
 import scipy.io 
 import cv2
 from timeit import default_timer as timer
